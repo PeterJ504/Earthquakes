@@ -6,4 +6,4 @@ The code works but I find it "clunky". I'm not new to programming (COBOL, Unisys
 
 If you have any suggestions for improvement, structural or otherwise, I would be grateful.
 
-To run the code, use the guiEarthquake.py.
+To run the code, use the guiEarthquakes.py.

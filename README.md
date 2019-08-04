@@ -5,3 +5,5 @@ My first attempt using Python. It pulls earthquake data from USGS and displays i
 The code works but I find it "clunky". I'm not new to programming (COBOL, Unisys Mapper (yes,I'm old)) but I am new to Python and OOP in particular.
 
 If you have any suggestions for improvement, structural or otherwise, I would be grateful.
+
+To run the code, use the guiEarthquake.py.

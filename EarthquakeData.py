@@ -1,8 +1,5 @@
 import json
 import urllib.request
-from datetime import datetime, timedelta
-import numpy as np
-import pandas as pd
 
 
 class EarthquakeData:
@@ -46,7 +43,6 @@ class EarthquakeData:
                 # write json data to a file
                 with open("earthquake.json", "w") as f:
                     json.dump(theJSON, f)
-                f.close()
                 return theJSON
             except:
                 # TODO: Need better error handling
@@ -127,7 +123,8 @@ class EarthquakeData:
 def main():
 
     urlData = (
-        "https://earthquake.usgs.gov/earthquakes/feed/v1.0/" "summary/2.5_day.geojson"
+        "https://earthquake.usgs.gov/earthquakes/feed/v1.0/"
+        "summary/2.5_day.geojson"
     )
 
     print(EarthquakeData.getWebData(urlData))

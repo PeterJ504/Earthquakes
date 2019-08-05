@@ -7,14 +7,13 @@ Description: My first attempt at a GUI for the earthquake data
 import webbrowser
 from datetime import datetime, timedelta, timezone
 from tkinter import Menu, StringVar, Tk, messagebox, ttk
+
 import pytz
 from tzlocal import get_localzone
-
-# from EarthquakeData import getNewData
-# from EarthquakeData import getWebData
 from EarthquakeData import *
 
-urlData = "https://earthquake.usgs.gov/earthquakes/" "feed/v1.0/summary/2.5_day.geojson"
+urlData = "https://earthquake.usgs.gov/earthquakes/"\
+    "feed/v1.0/summary/2.5_day.geojson"
 
 
 class EarthquakeGUI:
@@ -61,7 +60,7 @@ class EarthquakeGUI:
         x = urlData.find("summary/")
         y = urlData.find(".geojson")
         # print(urlData[x+8:y])
-        urlData = str(urlData.replace(urlData[x + 8 : y], timeString, 1))
+        urlData = str(urlData.replace(urlData[x + 8: y], timeString, 1))
         # print(urlData)
 
         self._refreshData()
@@ -74,16 +73,14 @@ class EarthquakeGUI:
         self.summarySelected.delete(0)
         # print(self.summarySelected.width)
         if len(data) > 0:
-            n = 0
-            for i in data:
-                dropdownlist.append(str(data[n][1]) + "  -  " + str(data[n][2]))
-                n += 1
+            for n, i in enumerate(data):
+                dropdownlist.append(str(data[n][1]*1.0) + "  -  " +
+                                    str(data[n][2]))
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.current(0)
-            self.summarySelected.bind(
-                "<<ComboboxSelected>>",
-                lambda event, arg=data: self._comboCallbackFunc(event, arg),
-            )
+            self.summarySelected.bind("<<ComboboxSelected>>", lambda event,
+                                       arg=data: self._comboCallbackFunc(
+                                           event, arg),)
         else:
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.set("")
@@ -106,9 +103,8 @@ class EarthquakeGUI:
         fileMenu.add_separator()
         fileMenu.add_command(label="Exit", command=self._quit)
         # ----- Menu Bar - Create the Data Menu-------------------------
-        dataMenu.add_command(
-            label="Refresh current Data source", command=self._refreshData
-        )
+        dataMenu.add_command(label="Refresh current Data source",
+                             command=self._refreshData)
         dataMenu.add_separator()
         dataSubMenu = Menu(dataMenu, tearoff=False)
         dataMenu.add_cascade(menu=dataSubMenu, label="New Data Source")
@@ -131,7 +127,8 @@ class EarthquakeGUI:
                 s1 = str(d1[j][0] + ", past " + d2[i][0])
                 s2 = str(d1[j][1] + "_" + d2[i][1])
                 dataSubMenu.add_command(
-                    label=s1, command=lambda widget=s2: self.getNewData(widget)
+                    label=s1, command=lambda widget=s2:
+                        self.getNewData(widget)
                 )
                 if j == (len(d1) - 1) and i != (len(d2) - 1):
                     dataSubMenu.add_separator()
@@ -143,18 +140,24 @@ class EarthquakeGUI:
             self.headings_frame, text="selection frame"
         )
         self.selection_frame.configure(text=header["title"])
-        self.selection_frame.grid(column=0, columnspan=2, row=0, sticky="NW")
-        self.file_frame = ttk.LabelFrame(self.headings_frame, text="File Info")
+        self.selection_frame.grid(column=0, columnspan=2, row=0,
+                                  sticky="NW")
+        self.file_frame = ttk.LabelFrame(self.headings_frame,
+                                         text="File Info")
         self.file_frame.grid(column=2, row=0, rowspan=3, sticky="NW")
         self.details_frame = ttk.LabelFrame(self.mainFrame)
         self.details_frame.grid(row=1)
-        self.summary_frame = ttk.LabelFrame(self.details_frame, text="Event Details")
+        self.summary_frame = ttk.LabelFrame(self.details_frame,
+                                            text="Event Details")
         self.summary_frame.grid(row=0, columnspan=2)
-        self.location_frame = ttk.LabelFrame(self.details_frame, text="Event Location")
+        self.location_frame = ttk.LabelFrame(self.details_frame,
+                                             text="Event Location")
         self.location_frame.grid(row=1, column=0, sticky="NW")
-        self.time_frame = ttk.LabelFrame(self.details_frame, text="Time of Event")
+        self.time_frame = ttk.LabelFrame(self.details_frame,
+                                         text="Time of Event")
         self.time_frame.grid(row=1, column=1, sticky="NW")
-        ttk.Label(self.selection_frame).grid(column=0, row=0, sticky="W")
+        ttk.Label(self.selection_frame).grid(column=0, row=0,
+                                             sticky="W")
         # ----- Set up combo box and data to populate it ---------------
         self.summarySelected = ttk.Combobox(
             self.selection_frame, width=85, state="readonly"
@@ -164,21 +167,26 @@ class EarthquakeGUI:
         # ----- Add File widget - File delta ---------------------------
         self.fileDelta = StringVar()
         fileDeltaEntry = ttk.Label(
-            self.file_frame, width=25, textvariable=self.fileDelta, state="readonly"
+            self.file_frame, width=25, textvariable=self.fileDelta,
+            state="readonly"
         )
         fileDeltaEntry.grid(column=1, row=0, columnspan=2, sticky="W")
         # ----- Add File widget - File Time ----------------------------
-        ttk.Label(self.file_frame, text="File Time:").grid(column=0, row=1, sticky="E")
+        ttk.Label(self.file_frame, text="File Time:").grid(
+            column=0, row=1, sticky="E")
         self.fileTime = StringVar()
         fileTimeEntry = ttk.Label(
-            self.file_frame, width=25, textvariable=self.fileTime, state="readonly"
+            self.file_frame, width=25, textvariable=self.fileTime,
+            state="readonly"
         )
         fileTimeEntry.grid(column=1, row=1, sticky="W")
         # ----- Add File widget - Event count --------------------------
-        ttk.Label(self.file_frame, text="Count:").grid(column=0, row=2, sticky="E")
+        ttk.Label(self.file_frame, text="Count:").grid(column=0, row=2,
+                                                       sticky="E")
         self.fileCount = StringVar()
         fileCountEntry = ttk.Label(
-            self.file_frame, width=25, textvariable=self.fileCount, state="readonly"
+            self.file_frame, width=25, textvariable=self.fileCount,
+            state="readonly"
         )
         fileCountEntry.grid(column=1, row=2, sticky="W")
         # ----- Add Summary widget - Magnitude -------------------------
@@ -187,30 +195,35 @@ class EarthquakeGUI:
         )
         self.mag = StringVar()
         magEntry = ttk.Label(
-            self.summary_frame, width=7, textvariable=self.mag, state="readonly"
+            self.summary_frame, width=7, textvariable=self.mag,
+            state="readonly"
         )
         magEntry.grid(column=1, row=0, sticky="W")
         # ----- Add Summary widget - Alert -----------------------------
-        ttk.Label(self.summary_frame, text="Alert:").grid(column=2, row=0, sticky="E")
+        ttk.Label(self.summary_frame, text="Alert:").grid(
+            column=2, row=0, sticky="E")
         self.alert = StringVar()
         alertEntry = ttk.Label(
-            self.summary_frame, width=7, textvariable=self.alert, state="readonly"
+            self.summary_frame, width=7, textvariable=self.alert,
+            state="readonly"
         )
         alertEntry.grid(column=3, row=0, sticky="W")
         # ----- Add Summary widget - Shake -----------------------------
-        ttk.Label(self.summary_frame, text="Shake:").grid(column=4, row=0, sticky="E")
+        ttk.Label(self.summary_frame, text="Shake:").grid(
+            column=4, row=0, sticky="E")
         self.shake = StringVar()
         shakeEntry = ttk.Label(
-            self.summary_frame, width=7, textvariable=self.shake, state="readonly"
+            self.summary_frame, width=7, textvariable=self.shake,
+            state="readonly"
         )
         shakeEntry.grid(column=5, row=0, sticky="W")
         # ----- Add Summary widget - Report Felt -----------------------
         ttk.Label(self.summary_frame, text="Reported felt:").grid(
-            column=6, row=0, sticky="E"
-        )
+            column=6, row=0, sticky="E")
         self.felt = StringVar()
         feltEntry = ttk.Label(
-            self.summary_frame, width=7, textvariable=self.felt, state="readonly"
+            self.summary_frame, width=7, textvariable=self.felt,
+            state="readonly"
         )
         feltEntry.grid(column=7, row=0, sticky="W")
         # ----- Add Summary widget - Url/More Info ---------------------
@@ -218,61 +231,61 @@ class EarthquakeGUI:
             column=0, row=1, sticky="E"
         )
         self.urlName = StringVar()
-        self.urlEntry = ttk.Button(self.summary_frame, text="url goes here")
+        self.urlEntry = ttk.Button(self.summary_frame)
         self.urlEntry.grid(column=2, row=1, columnspan=5, sticky="W")
         # ----- Add Location widget - Place ----------------------------
-        ttk.Label(self.location_frame, text="Place:").grid(column=0, row=4, sticky="E")
+        ttk.Label(self.location_frame, text="Place:").grid(
+            column=0, row=4, sticky="E")
         self.place = StringVar()
         locEntry = ttk.Label(
-            self.location_frame, width=45, textvariable=self.place, state="readonly"
-        )
+            self.location_frame, width=45, textvariable=self.place,
+            state="readonly")
         locEntry.grid(column=1, row=4, sticky="W")
         # ----- Add Location widget - Latitude -------------------------
         ttk.Label(self.location_frame, text="Latitude:").grid(
-            column=0, row=10, sticky="E"
-        )
+            column=0, row=10, sticky="E")
         self.lat = StringVar()
         latEntry = ttk.Label(
-            self.location_frame, width=25, textvariable=self.lat, state="readonly"
-        )
+            self.location_frame, width=25, textvariable=self.lat,
+            state="readonly")
         latEntry.grid(column=1, row=10, sticky="W")
         # ----- Add Location widget - Longitude ------------------------
         ttk.Label(self.location_frame, text="Longitude:").grid(
-            column=0, row=11, sticky="E"
-        )
+            column=0, row=11, sticky="E")
         self.lon = StringVar()
         longEntry = ttk.Label(
-            self.location_frame, width=25, textvariable=self.lon, state="readonly"
-        )
+            self.location_frame, width=25, textvariable=self.lon,
+            state="readonly")
         longEntry.grid(column=1, row=11, sticky="W")
         # ----- Add Location widget - Depth ----------------------------
-        ttk.Label(self.location_frame, text="Depth:").grid(column=0, row=12, sticky="E")
+        ttk.Label(self.location_frame, text="Depth:").grid(
+            column=0, row=12, sticky="E")
         self.depth = StringVar()
         depthEntry = ttk.Label(
-            self.location_frame, width=25, textvariable=self.depth, state="readonly"
-        )
+            self.location_frame, width=25, textvariable=self.depth,
+            state="readonly")
         depthEntry.grid(column=1, row=12, sticky="W")
         # ----- Add Time widget - Event delta --------------------------
         self.deltaEntry = StringVar()
         deltaEntry = ttk.Label(
-            self.time_frame, width=25, textvariable=self.deltaEntry, state="readonly"
-        )
+            self.time_frame, width=25, textvariable=self.deltaEntry,
+            state="readonly")
         deltaEntry.grid(column=1, row=0, sticky="W")
         # ----- Add Time widget - Event Time ---------------------------
-        ttk.Label(self.time_frame, text="Time:").grid(column=0, row=1, sticky="E")
+        ttk.Label(self.time_frame, text="Time:").grid(
+            column=0, row=1,sticky="E")
         self.time = StringVar()
         timeEntry = ttk.Label(
-            self.time_frame, width=25, textvariable=self.time, state="readonly"
-        )
+            self.time_frame, width=25, textvariable=self.time,
+            state="readonly")
         timeEntry.grid(column=1, row=1, sticky="W")
         # ----- Add Time widget - Event Local Time ---------------------
         ttk.Label(self.time_frame, text="Your local time:").grid(
-            column=0, row=2, sticky="E"
-        )
+            column=0, row=2, sticky="E")
         self.tz = StringVar()
         tzEntry = ttk.Label(
-            self.time_frame, width=25, textvariable=self.tz, state="readonly"
-        )
+            self.time_frame, width=25, textvariable=self.tz,
+            state="readonly")
         tzEntry.grid(column=1, row=2, sticky="W")
         # ----- Add padding around fields
         self.mainFrame.grid_configure(padx=8, pady=4)
@@ -292,9 +305,8 @@ class EarthquakeGUI:
         # Update header fields for the file
         self.selection_frame.configure(text=header["title"])
         self.fileCount.set(header["count"])
-        utc_time = datetime.utcfromtimestamp(header["timeStamp"] / 1000).replace(
-            tzinfo=pytz.utc
-        )
+        utc_time = datetime.utcfromtimestamp(
+            header["timeStamp"] / 1000).replace(tzinfo=pytz.utc)
         self.fileTime.set(utc_time.strftime("%Y-%m-%d %H:%M:%S %Z"))
         self.fileDelta.set(deltaTime(self, utc_time))
 
@@ -304,9 +316,8 @@ class EarthquakeGUI:
             # Update fields in the display from the data record
             self.mag.set(data[rec][1])
             self.place.set(data[rec][2])
-            utc_time = datetime.utcfromtimestamp(data[rec][3] / 1000).replace(
-                tzinfo=pytz.utc
-            )
+            utc_time = datetime.utcfromtimestamp(
+                data[rec][3] / 1000).replace(tzinfo=pytz.utc)
             self.time.set(utc_time.strftime("%Y-%m-%d %H:%M:%S %Z"))
             current_tz = utc_time.astimezone(get_localzone())
             self.tz.set(current_tz.strftime("%Y-%m-%d %H:%M:%S %Z"))
@@ -348,7 +359,8 @@ class EarthquakeGUI:
             self.deltaEntry.set(None)
         self.urlEntry.config(
             text=self.urlName.get(),
-            command=lambda arg=self.urlName.get(): self._webCallbackFunc(arg),
+            command=lambda arg=self.urlName.get():
+                self._webCallbackFunc(arg)
         )
 
 
@@ -374,7 +386,8 @@ def main():
 
     # root = Tk()
 
-    # Get data from file.  If the does not exist then go to the web to update
+    # Get data from file.  If the does not exist then go to the
+    # web to update it.
     JSONdata = EarthquakeData.getDataFile()
     if not JSONdata:
         JSONdata = EarthquakeData.getWebData(urlData)

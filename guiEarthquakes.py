@@ -10,7 +10,7 @@ from tkinter import Menu, StringVar, Tk, messagebox, ttk
 
 import pytz
 from tzlocal import get_localzone
-from EarthquakeData import *
+from EarthquakeData import getDataFile, getWebData, loadHeaderInfo, loadList
 
 urlData = "https://earthquake.usgs.gov/earthquakes/"\
     "feed/v1.0/summary/2.5_day.geojson"
@@ -25,13 +25,13 @@ class EarthquakeGUI:
 
     def _refreshData(self):
         t1 = datetime.now()
-        JSONdata = EarthquakeData.getWebData(urlData)
+        JSONdata = getWebData(urlData)
         t2 = datetime.now()
         tdweb = t2 - t1
         print("Web Retrieval - {}".format(tdweb.total_seconds()))
         if JSONdata:
-            hList = EarthquakeData.loadHeaderInfo(JSONdata)
-            eList = EarthquakeData.loadList(JSONdata)
+            hList = loadHeaderInfo(JSONdata)
+            eList = loadList(JSONdata)
             self.updateComboBoxData(eList)
             recNum = 0
             self.updateHeaderFields(hList)
@@ -79,8 +79,8 @@ class EarthquakeGUI:
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.current(0)
             self.summarySelected.bind("<<ComboboxSelected>>", lambda event,
-                                       arg=data: self._comboCallbackFunc(
-                                           event, arg),)
+                                      arg=data: self._comboCallbackFunc(
+                                          event, arg),)
         else:
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.set("")
@@ -273,7 +273,7 @@ class EarthquakeGUI:
         deltaEntry.grid(column=1, row=0, sticky="W")
         # ----- Add Time widget - Event Time ---------------------------
         ttk.Label(self.time_frame, text="Time:").grid(
-            column=0, row=1,sticky="E")
+            column=0, row=1, sticky="E")
         self.time = StringVar()
         timeEntry = ttk.Label(
             self.time_frame, width=25, textvariable=self.time,
@@ -388,14 +388,13 @@ def main():
 
     # Get data from file.  If the does not exist then go to the
     # web to update it.
-    JSONdata = EarthquakeData.getDataFile()
+    JSONdata = getDataFile()
     if not JSONdata:
-        JSONdata = EarthquakeData.getWebData(urlData)
+        JSONdata = getWebData(urlData)
         if not JSONdata:
             print("error getting file")
-    hList = EarthquakeData.loadHeaderInfo(JSONdata)
-    eList = EarthquakeData.loadList(JSONdata)
-
+    hList = loadHeaderInfo(JSONdata)
+    eList = loadList(JSONdata)
     root = EarthquakeGUI(eList, hList)
     root.win.mainloop()
 

@@ -12,6 +12,15 @@ import pytz
 from tzlocal import get_localzone
 from EarthquakeData import getDataFile, getWebData, loadHeaderInfo, loadList
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
+    datefmt='%Y%m%d %H:%M:%S',
+)
+
+
 urlData = "https://earthquake.usgs.gov/earthquakes/"\
     "feed/v1.0/summary/2.5_day.geojson"
 
@@ -28,17 +37,18 @@ class EarthquakeGUI:
         JSONdata = getWebData(urlData)
         t2 = datetime.now()
         tdweb = t2 - t1
-        print("Web Retrieval - {}".format(tdweb.total_seconds()))
         if JSONdata:
             hList = loadHeaderInfo(JSONdata)
+            print(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.3}s")
+            logging.info(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.3}s")
             eList = loadList(JSONdata)
             self.updateComboBoxData(eList)
-            recNum = 0
             self.updateHeaderFields(hList)
-            self.updateFields(eList, recNum)
+
         else:
             messagebox.showerror(
                 "USGS File error",
+                "Error retrieving "
                 "Error retrieving "
                 "data from USGS web site.  This normally"
                 " occurs when the number of data lines"

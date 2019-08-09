@@ -1,24 +1,36 @@
 import json
 import urllib.request
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
+    datefmt='%Y%m%d %H:%M:%S',
+)
+
+JSONFile = 'earthquake.json'
+
 
 def getDataFile():
     # get data from a stored file.  When multiple requests are made, it
     # saves going to the web each time.
     # output: a JSON file. If the file does not exist it returns None.
     try:
-        with open("earthquake.json", "r") as f:
+        with open(JSONFile, "r") as f:
             data = f.read()
     except FileNotFoundError:
         return None
     except:
-        print("File error")
+        logging.error(
+            f"\nError reading file - {JSONFile}.")
         return None
     return json.loads(data)
 
 
 def getWebData(urlData):
-    # print(urlData)
+    logging.debug(
+        f"\nReading url - {urlData}.")
     # get data from the web and write to a file if successful
     try:
         webUrl = urllib.request.urlopen(urlData)
@@ -30,26 +42,23 @@ def getWebData(urlData):
         msg = (
             msg + f"\nFor more information, paste the url into your web browser.\n\n"
         )
-        print(msg)
+        logging.error(msg)
         return None
     if webUrl.getcode() == 200:
         data = webUrl.read()
         try:
             theJSON = json.loads(data)
             # write json data to a file
-            with open("earthquake.json", "w") as f:
+            with open(JSONFile, "w") as f:
                 json.dump(theJSON, f)
             return theJSON
         except:
-            print(
-                f"File error from server, cannot retrieve results from - \n{(urlData)}"
-            )
+            logging.error(
+                f"\nUnknown error from website \n{urlData}")
             return None
     else:
-        print(
-            f"Received an error from server, cannot retrieve results {str(webUrl.getcode())}"
-
-        )
+        logging.error(
+            f"\nError from website - code: {webUrl.getcode()}\n{urlData}")
         return None
 
 

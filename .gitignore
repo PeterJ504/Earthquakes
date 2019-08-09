@@ -4,3 +4,5 @@ __pycache__/EarthquakeData.cpython-37.pyc
 guiEarthquakes_backup.py
 earthquakes.py
 earthquake.json
+.vscode/settings.json
+.gitignore

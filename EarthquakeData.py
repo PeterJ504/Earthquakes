@@ -93,11 +93,11 @@ def loadList(JSONData):
         s_eList = sorted(eList, key=lambda x: (x[1], x[7]), reverse=True)
         return s_eList
     except:
-        print("Error sorting list - most likely bad data")
+        logging.error("Error sorting list - most likely bad data")
         # output = set()
         # for x in testList:
         #     output.add(x)
-        # print(output)
+        # logging.debug(output)
     return eList
 
 
@@ -121,7 +121,7 @@ def main():
     )
 
     output = getWebData(urlData)
-    print(output)
+    logging.debug(output)
 
     # JSONdata = getDataFile()
     # if JSONdata:

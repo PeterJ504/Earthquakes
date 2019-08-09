@@ -39,8 +39,7 @@ class EarthquakeGUI:
         tdweb = t2 - t1
         if JSONdata:
             hList = loadHeaderInfo(JSONdata)
-            print(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.3}s")
-            logging.info(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.3}s")
+            logging.info(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.4}s")
             eList = loadList(JSONdata)
             self.updateComboBoxData(eList)
             self.updateHeaderFields(hList)
@@ -54,14 +53,14 @@ class EarthquakeGUI:
                 " occurs when the number of data lines"
                 " has been exceeded.",
             )
-            print("guiEarthquakeData - error getting file")
+            logging.error("Error retrieving file")
 
     def _comboCallbackFunc(self, event, data):
         # When combo box changes, updated data with new selection
         self.updateFields(data, self.summarySelected.current())
 
     def _webCallbackFunc(self, data):
-        print(data)
+        logging.debug(data)
         webbrowser.open_new(data)
 
     def getNewData(self, timeString):
@@ -69,10 +68,9 @@ class EarthquakeGUI:
         global urlData
         x = urlData.find("summary/")
         y = urlData.find(".geojson")
-        # print(urlData[x+8:y])
+        logging.debug(urlData[x+8:y])
         urlData = str(urlData.replace(urlData[x + 8: y], timeString, 1))
-        # print(urlData)
-
+        logging.debug(urlData)
         self._refreshData()
         # When combo box changes, updated data with new selection
         # self.updateFields(data, self.summarySelected.current())
@@ -81,7 +79,6 @@ class EarthquakeGUI:
     def updateComboBoxData(self, data):
         dropdownlist = []
         self.summarySelected.delete(0)
-        # print(self.summarySelected.width)
         if len(data) > 0:
             for n, i in enumerate(data):
                 dropdownlist.append(str(data[n][1]*1.0) + "  -  " +
@@ -321,7 +318,6 @@ class EarthquakeGUI:
         self.fileDelta.set(deltaTime(self, utc_time))
 
     def updateFields(self, data, rec):
-        # print('Record {}'.format(rec))
         if len(data) > 0:
             # Update fields in the display from the data record
             self.mag.set(data[rec][1])
@@ -402,7 +398,7 @@ def main():
     if not JSONdata:
         JSONdata = getWebData(urlData)
         if not JSONdata:
-            print("error getting file")
+            logging.error("error getting file")
     hList = loadHeaderInfo(JSONdata)
     eList = loadList(JSONdata)
     root = EarthquakeGUI(eList, hList)

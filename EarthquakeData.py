@@ -5,9 +5,9 @@ import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
-    datefmt='%Y%m%d %H:%M:%S',
-)
+    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s:'
+    '%(message)s', datefmt='%Y%m%d %H:%M:%S',)
+
 
 JSONFile = 'earthquake.json'
 
@@ -35,14 +35,7 @@ def getWebData(urlData):
     try:
         webUrl = urllib.request.urlopen(urlData)
     except urllib.error.URLError as e:
-        msg = (
-            f"\nError from website - {str(e.code)} - {str(e.reason)} \n{urlData}")
-        if e.code == 400:
-            msg = msg + f"\nThis error usually occurs when file is too big."
-        msg = (
-            msg + f"\nFor more information, paste the url into your web browser.\n\n"
-        )
-        logging.error(msg)
+        logging.error(f"URL access error - {e.reason}")
         return None
     if webUrl.getcode() == 200:
         data = webUrl.read()

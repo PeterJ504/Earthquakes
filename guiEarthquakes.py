@@ -1,3 +1,4 @@
+#! python3
 """
 Description: My first attempt at a GUI for the earthquake data
 
@@ -16,9 +17,8 @@ import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
-    datefmt='%Y%m%d %H:%M:%S',
-)
+    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s:'
+    '%(message)s', datefmt='%Y%m%d %H:%M:%S',)
 
 
 urlData = "https://earthquake.usgs.gov/earthquakes/"\
@@ -39,7 +39,9 @@ class EarthquakeGUI:
         tdweb = t2 - t1
         if JSONdata:
             hList = loadHeaderInfo(JSONdata)
-            logging.info(f"Web Retrieval - {hList['count']:,} records in {tdweb.total_seconds():.4}s")
+            logging.info(
+                f"Web Retrieval - {hList['count']:,} "
+                f"records in {tdweb.total_seconds(): .4}s")
             eList = loadList(JSONdata)
             self.updateComboBoxData(eList)
             self.updateHeaderFields(hList)
@@ -48,11 +50,7 @@ class EarthquakeGUI:
             messagebox.showerror(
                 "USGS File error",
                 "Error retrieving "
-                "Error retrieving "
-                "data from USGS web site.  This normally"
-                " occurs when the number of data lines"
-                " has been exceeded.",
-            )
+                "data from USGS web site. Check console for error.")
             logging.error("Error retrieving file")
 
     def _comboCallbackFunc(self, event, data):
@@ -68,8 +66,8 @@ class EarthquakeGUI:
         global urlData
         x = urlData.find("summary/")
         y = urlData.find(".geojson")
-        logging.debug(urlData[x+8:y])
-        urlData = str(urlData.replace(urlData[x + 8: y], timeString, 1))
+        logging.debug(urlData[x + 8:y])
+        urlData = str(urlData.replace(urlData[x + 8:y], timeString, 1))
         logging.debug(urlData)
         self._refreshData()
         # When combo box changes, updated data with new selection
@@ -80,7 +78,7 @@ class EarthquakeGUI:
         dropdownlist = []
         self.summarySelected.delete(0)
         if len(data) > 0:
-            for n, i in enumerate(data):
+            for n, _ in enumerate(data):
                 dropdownlist.append(str(data[n][1]*1.0) + "  -  " +
                                     str(data[n][2]))
             self.summarySelected["values"] = dropdownlist
@@ -310,6 +308,8 @@ class EarthquakeGUI:
 
     def updateHeaderFields(self, header):
         # Update header fields for the file
+        global urlData
+        urlData = header["url"]
         self.selection_frame.configure(text=header["title"])
         self.fileCount.set(header["count"])
         utc_time = datetime.utcfromtimestamp(

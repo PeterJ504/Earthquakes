@@ -6,4 +6,6 @@ I'm not new to programming (COBOL, Unisys Mapper (yes,I'm old)) but I am new to 
 
 If you have any suggestions for improvement, structural or otherwise, I would be grateful.
 
-To run the code, use the guiEarthquakes.py.
+To run the code, use guiEarthquakes.py.
+
+![Screenshot](docs/screenshot.png?raw=true)

@@ -1,4 +1,3 @@
-#! python3
 """
 Description: My first attempt at a GUI for the earthquake data
 
@@ -7,7 +6,7 @@ Description: My first attempt at a GUI for the earthquake data
 # Imports
 import webbrowser
 from datetime import datetime, timedelta, timezone
-from tkinter import Menu, StringVar, Tk, messagebox, ttk
+from tkinter import Menu, StringVar, BooleanVar, Tk, messagebox, ttk
 
 import pytz
 from tzlocal import get_localzone
@@ -17,12 +16,15 @@ import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s:'
-    '%(message)s', datefmt='%Y%m%d %H:%M:%S',)
+    format='%(asctime)s %(levelname)5s:%(lineno)4s:%(filename)20s:'
+    '%(funcName)20s:%(message)s', datefmt='%Y%m%d %H:%M:%S',)
 
 
 urlData = "https://earthquake.usgs.gov/earthquakes/"\
     "feed/v1.0/summary/2.5_day.geojson"
+
+# TODO - Add environment variable for persistent options
+# ADD  - Add colours to alert (Black on Red, Orange, Yellow, Green)
 
 
 class EarthquakeGUI:
@@ -33,6 +35,7 @@ class EarthquakeGUI:
         exit()
 
     def _refreshData(self):
+        logging.debug("")
         t1 = datetime.now()
         JSONdata = getWebData(urlData)
         t2 = datetime.now()
@@ -41,11 +44,11 @@ class EarthquakeGUI:
             hList = loadHeaderInfo(JSONdata)
             logging.info(
                 f"Web Retrieval - {hList['count']:,} "
-                f"records in {tdweb.total_seconds(): .4}s")
+                f"records in {tdweb.total_seconds(): .3}s")
             eList = loadList(JSONdata)
-            self.updateComboBoxData(eList)
+            eList = self.sortData(eList)
             self.updateHeaderFields(hList)
-
+            self.updateFields(eList, self.summarySelected.current())
         else:
             messagebox.showerror(
                 "USGS File error",
@@ -54,15 +57,16 @@ class EarthquakeGUI:
             logging.error("Error retrieving file")
 
     def _comboCallbackFunc(self, event, data):
+        logging.debug("")
         # When combo box changes, updated data with new selection
         self.updateFields(data, self.summarySelected.current())
 
     def _webCallbackFunc(self, data):
-        logging.debug(data)
+        logging.debug("")
         webbrowser.open_new(data)
 
     def getNewData(self, timeString):
-
+        logging.debug("")
         global urlData
         x = urlData.find("summary/")
         y = urlData.find(".geojson")
@@ -75,12 +79,15 @@ class EarthquakeGUI:
         # return urlData
 
     def updateComboBoxData(self, data):
+        logging.debug("")
         dropdownlist = []
         self.summarySelected.delete(0)
         if len(data) > 0:
             for n, _ in enumerate(data):
-                dropdownlist.append(str(data[n][1]*1.0) + "  -  " +
-                                    str(data[n][2]))
+                mag = f"{data[n][1]:.1f}"
+                mmi = f"{data[n][8]:.3f}"
+                dropdownlist.append(
+                    mag + "  -  " + mmi + "  -  " + str(data[n][2]))
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.current(0)
             self.summarySelected.bind("<<ComboboxSelected>>", lambda event,
@@ -90,23 +97,51 @@ class EarthquakeGUI:
             self.summarySelected["values"] = dropdownlist
             self.summarySelected.set("")
 
+    def sortData(self, data):
+        logging.debug(f"{self.sortOption.get()}")
+        try:
+            if self.sortOption.get() == '2':
+                s_eList = sorted(data, key=lambda x: (
+                    x[8], x[1], x[7]), reverse=True)
+            else:
+                s_eList = sorted(data, key=lambda x: (
+                    x[1], x[7]), reverse=True)
+            eList = s_eList[:]
+        except:
+            logging.error("Error sorting list - most likely bad data")
+        self.updateComboBoxData(eList)
+        return eList
+
     def __init__(self, data, header):
-        # test
         self.win = Tk()
-        self.win.title("USGS Current Earthquake Data")  # Title
+        self.win.title("USGS Current Earthquake Data")
+        self.checked = BooleanVar()
+        self.checked.trace("w", self.mark_checked)
+        self.sortOption = StringVar()
+        self.sortOption.set("1")
+        self.sortOption.trace("w", self.mark_sortOption)
 
         # ----- Menu Bar - Create the Menu Bar -------------------------
         menuBar = Menu()
         self.win.config(menu=menuBar)
         fileMenu = Menu(menuBar, tearoff=False)
         dataMenu = Menu(menuBar, tearoff=False)
+        optionsMenu = Menu(menuBar, tearoff=False)
         helpMenu = Menu(menuBar, tearoff=False)
         menuBar.add_cascade(menu=fileMenu, label="File")
         menuBar.add_cascade(menu=dataMenu, label="Data")
+        menuBar.add_cascade(menu=optionsMenu, label="Options")
         menuBar.add_cascade(menu=helpMenu, label="Help")
         # ----- Menu Bar - Create the File Menu ------------------------
         fileMenu.add_separator()
         fileMenu.add_command(label="Exit", command=self._quit)
+        # ----- Menu Bar - Create the Options Menu ---------------------
+        sortSubMenu = Menu(optionsMenu, tearoff=False)
+        optionsMenu.add_cascade(menu=sortSubMenu, label="Sort")
+        sortSubMenu.add_radiobutton(
+            label="Sort by Magnitude", value="1", variable=self.sortOption)
+        sortSubMenu.add_radiobutton(
+            label="Sort by Predictive damage or Shake(MMI)", value="2", variable=self.sortOption)
         # ----- Menu Bar - Create the Data Menu-------------------------
         dataMenu.add_command(label="Refresh current Data source",
                              command=self._refreshData)
@@ -142,8 +177,7 @@ class EarthquakeGUI:
         self.headings_frame = ttk.LabelFrame(self.mainFrame)
         self.headings_frame.grid(row=0)
         self.selection_frame = ttk.LabelFrame(
-            self.headings_frame, text="selection frame"
-        )
+            self.headings_frame, text="selection frame")
         self.selection_frame.configure(text=header["title"])
         self.selection_frame.grid(column=0, columnspan=2, row=0,
                                   sticky="NW")
@@ -214,7 +248,7 @@ class EarthquakeGUI:
         )
         alertEntry.grid(column=3, row=0, sticky="W")
         # ----- Add Summary widget - Shake -----------------------------
-        ttk.Label(self.summary_frame, text="Shake:").grid(
+        ttk.Label(self.summary_frame, text="Shake (MMI):").grid(
             column=4, row=0, sticky="E")
         self.shake = StringVar()
         shakeEntry = ttk.Label(
@@ -237,7 +271,7 @@ class EarthquakeGUI:
         )
         self.urlName = StringVar()
         self.urlEntry = ttk.Button(self.summary_frame)
-        self.urlEntry.grid(column=2, row=1, columnspan=5, sticky="W")
+        self.urlEntry.grid(column=1, row=1, columnspan=8, sticky="W")
         # ----- Add Location widget - Place ----------------------------
         ttk.Label(self.location_frame, text="Place:").grid(
             column=0, row=4, sticky="E")
@@ -302,12 +336,30 @@ class EarthquakeGUI:
                     widget.grid_configure(padx=8, pady=4)
 
         # ----- Call funtion to update fields --------------------------
-        recNum = 0
+        data = self.sortData(data)
         self.updateHeaderFields(header)
-        self.updateFields(data, recNum)
+        self.updateFields(data, self.summarySelected.current())
+
+    def mark_checked(self, *args):
+        logging.debug("")
+        print(self.checked.get())
+
+    def mark_sortOption(self, *args):
+        logging.debug("")
+        print(self.sortOption.get())
+        JSONdata = getDataFile()
+        if not JSONdata:
+            self._refreshData()
+        else:
+            hList = loadHeaderInfo(JSONdata)
+            eList = loadList(JSONdata)
+            eList = self.sortData(eList)
+            self.updateHeaderFields(hList)
+            self.updateFields(eList, self.summarySelected.current())
 
     def updateHeaderFields(self, header):
         # Update header fields for the file
+        logging.debug("")
         global urlData
         urlData = header["url"]
         self.selection_frame.configure(text=header["title"])
@@ -318,9 +370,10 @@ class EarthquakeGUI:
         self.fileDelta.set(deltaTime(self, utc_time))
 
     def updateFields(self, data, rec):
+        logging.debug("")
         if len(data) > 0:
             # Update fields in the display from the data record
-            self.mag.set(data[rec][1])
+            self.mag.set(f"{data[rec][1]:.1f}")
             self.place.set(data[rec][2])
             utc_time = datetime.utcfromtimestamp(
                 data[rec][3] / 1000).replace(tzinfo=pytz.utc)
@@ -330,7 +383,7 @@ class EarthquakeGUI:
             self.urlName.set(data[rec][5])
             self.felt.set(data[rec][6])
             self.alert.set(data[rec][7])
-            self.shake.set(data[rec][8])
+            self.shake.set(f"{data[rec][8]:.3f}")
             tmpLat = data[rec][10]
             if tmpLat == 0:
                 self.lat.set("{} \xb0".format(tmpLat))
@@ -373,6 +426,7 @@ class EarthquakeGUI:
 def deltaTime(self, timeCheck):
     # Tells how long a date is from now (rounded to minutes, hours
     # or days)
+    logging.debug("")
     utc_now = datetime.now(timezone.utc)
     delta = utc_now - timeCheck
     hours = delta.total_seconds() / 3600
